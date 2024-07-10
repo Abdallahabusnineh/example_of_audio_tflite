@@ -1,23 +1,14 @@
-import 'package:flutter_sound/flutter_sound.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import 'package:record/record.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../core/audio_helper/audio_classification_helper.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class MainScreenController extends GetxController {
-
-// TfliteFlutterPlatform _tfliteFlutterPlatform=TfliteFlutterPlatform.;
   static const platform =
-  MethodChannel('org.tensorflow.audio_classification/audio_record');
-
-  Record audioRecord=Record();
-
-  bool recordPlaying=false;
+      MethodChannel('org.tensorflow.audio_classification/audio_record');
   final sampleRate = 16000; // 16kHz
   static const expectAudioLength = 975; // milliseconds
   final int requiredInputBuffer = (16000 * (expectAudioLength / 1000)).toInt();
@@ -56,8 +47,7 @@ class MainScreenController extends GetxController {
   @override
   void onInit() {
     // TODO: implement onInit
-   initRecorder();
-    //loadModel();
+    initRecorder();
     super.onInit();
   }
 
@@ -73,84 +63,46 @@ class MainScreenController extends GetxController {
   @override
   void onClose() {
     // TODO: implement onClose
-    //closeRecorder();
-    audioRecord.dispose();
+    closeRecorder();
     super.onClose();
   }
 
 
- /* Future<void> loadModel() async {
-    String? res = await Tflite.loadModel(
-      model: "assets/models/yamnet.tflite",
-      labels: "assets/models/yamnet_label_list.txt"
-    );
-    print(res);
-  }*/
 
-  /*Future<void> runModelOnAudio(String audioPath) async {
-    var recognitions = await Tflite.runModelOnAudio(
-      path: audioPath,  // path to the audio file
-      inputType: 'rawAudio',  // depends on your model
-      sampleRate: 16000,  // the sample rate your model expects
-    );
-    print(recognitions);
-  }*/
- /* Future<void> startRecording() async {
-      }
 
-  Future<void> stopRecording() async {
-     }*/
-  Future<void> startRecorder() async {
+
+
+  void startRecorder() {
     try {
-      print("START RECODING+++++++++++++++++++++++++++++++++++++++++++++++++");
-      if (await audioRecord.hasPermission()) {
-
-        await audioRecord.start();
-        recordPlaying = true;
-      }
-    } catch (e, stackTrace) {
-      print("START RECODING+++++++++++++++++++++${e}++++++++++${stackTrace}+++++++++++++++++");
+      print('start record');
+      platform.invokeMethod('startRecord');
+    } on PlatformException catch (e) {
+      log("Failed to start record: '${e.message}'.");
     }
     update();
   }
-  Future<void> requestPermission() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.microphone,
-      Permission.speech,
-      Permission.audio,
-    ].request();
-    print('statuses[Permission.microphone]  ${statuses[Permission.microphone]}');
-  }
-     /* return await platform.invokeMethod('requestPermissionAndCreateRecorder', {
+
+  Future<bool> requestPermission() async {
+    try {
+      return await platform.invokeMethod('requestPermissionAndCreateRecorder', {
         "sampleRate": sampleRate,
-        "requiredInputBuffer": requiredInputBuffer
-      });*//*
+        "requiredInputBuffer": requiredInputBuffer,
+
+      });
+    }
+    on Exception catch (e) {
+      log("Failed to create recorder: '${e.toString()}'.");
+      return false;
+    }
   }
-  Future<PermissionStatus> requestPermission(Permission permission) async {
-    final status = await permission.request();
-      print(status);
-return status;
-  }
-*/
 
   Future<Float32List> getAudioFloatArray() async {
     var audioFloatArray = Float32List(0);
     try {
-      audioRecord.onStateChanged().listen((event) async {
-        final Float32List result =
-            await platform.invokeMethod('getAudioFloatArray');
-        audioFloatArray = result;
-        print('get audio float array');
-
-      });
-/*
-
       final Float32List result =
-          await platform.invokeMethod('getAudioFloatArray');
+            await platform.invokeMethod('getAudioFloatArray');
       audioFloatArray = result;
       print('get audio float array');
-*/
-
     } on PlatformException catch (e) {
       log("Failed to get audio array: '${e.message}'.");
     }
@@ -159,22 +111,19 @@ return status;
 
   Future<void> closeRecorder() async {
     try {
-      print("STOP RECODING+++++++++++++++++++++++++++++++++++++++++++++++++");
-      await audioRecord.stop();
-      recordPlaying= false;
-    } catch (e) {
-      print("STOP RECODING+++++++++++++++++++++${e}+++++++++++++++++++++++++++");
+      await platform.invokeMethod('closeRecorder');
+      helper.closeInterpreter();
+    } on PlatformException {
+      log("Failed to close recorder.");
     }
-
   }
 
   Future<void> initRecorder() async {
-    await requestPermission();
     helper = AudioClassificationHelper();
     await helper.initHelper();
-    /* Permission ?permission;
-    PermissionStatus success = await permission!.request();
-    print("success abd  ${success}");*/
+    requestPermission();
+    bool success = await requestPermission();
+    print("success abd  ${success}");
     if (true) {
       startRecorder();
       Timer.periodic(const Duration(milliseconds: expectAudioLength), (timer) {
@@ -184,9 +133,7 @@ return status;
     } else {
       // show error here
       showError = true;
-
     }
-    update();
   }
 
   Future<void> runInference() async {
@@ -203,7 +150,5 @@ return status;
         .toList();
     update();
     //log(classification());
-
   }
-
 }

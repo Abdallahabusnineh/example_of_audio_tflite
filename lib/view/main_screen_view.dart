@@ -19,16 +19,18 @@ class MainScreenView extends StatelessWidget {
         body: GetBuilder<MainScreenController>(
           init: MainScreenController(),
           builder: (controller) {
-            return /*controller.showError
-                ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('abdallah'),
-                      ],
-                    ),
-                  ])
-                :*/ ListView.separated(
+            return controller.showError
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('abdallah'),
+                          ],
+                        ),
+                      ])
+                : ListView.separated(
                     padding: const EdgeInsets.all(10),
                     physics: const BouncingScrollPhysics(),
                     shrinkWrap: true,
