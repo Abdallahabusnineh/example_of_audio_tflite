@@ -40,6 +40,8 @@ dependencies:
   tflite_flutter: ^0.10.1
   tflite:
   get: ^4.6.6
+  record: ^4.3.3
+  flutter_sound: ^9.2.13
   permission_handler: ^8.1.3
 
 
