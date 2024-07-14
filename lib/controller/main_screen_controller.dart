@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:record/record.dart';
 import '../core/audio_helper/audio_classification_helper.dart';
 
 class MainScreenController extends GetxController {
@@ -13,6 +14,7 @@ class MainScreenController extends GetxController {
   static const expectAudioLength = 975; // milliseconds
   final int requiredInputBuffer = (16000 * (expectAudioLength / 1000)).toInt();
   late AudioClassificationHelper helper;
+  Record record=Record();
   List<MapEntry<String, double>> classification = List.empty();
   final List<Color> primaryProgressColorList = [
     const Color(0xFFF44336),
@@ -121,10 +123,9 @@ class MainScreenController extends GetxController {
   Future<void> initRecorder() async {
     helper = AudioClassificationHelper();
     await helper.initHelper();
-    requestPermission();
-    bool success = await requestPermission();
-    print("success abd  ${success}");
-    if (true) {
+   // bool success = await requestPermission();
+    //print("success abd  ${success}");
+    if (await record.hasPermission()) {
       startRecorder();
       Timer.periodic(const Duration(milliseconds: expectAudioLength), (timer) {
         // classify here
@@ -140,7 +141,7 @@ class MainScreenController extends GetxController {
     Float32List inputArray = await getAudioFloatArray();
     final result =
         await helper.inference(inputArray.sublist(0, requiredInputBuffer));
-    // take top 3 classification
+    // here we will take top 3 classification to show them
     classification = (result.entries.toList()
           ..sort(
             (a, b) => a.value.compareTo(b.value),

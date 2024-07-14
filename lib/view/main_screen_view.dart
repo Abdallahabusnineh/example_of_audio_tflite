@@ -5,7 +5,7 @@ import '../controller/main_screen_controller.dart';
 
 class MainScreenView extends StatelessWidget {
   MainScreenView({super.key});
-
+// we can replace it with getBuilder and user there is controller
 //  MainScreenController controller = Get.put(MainScreenController());
 
   @override
@@ -26,7 +26,7 @@ class MainScreenView extends StatelessWidget {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('abdallah'),
+                            Text('there is an error'),
                           ],
                         ),
                       ])

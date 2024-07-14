@@ -41,7 +41,6 @@ class AudioClassificationHelper {
     _interpreter.run(List.of(input), output);
     var classification = <String, double>{};
     for (var i = 0; i < output[0].length; i++) {
-      // Set label: points
       classification[_labels[i]] = output[0][i];
     }
     return classification;
